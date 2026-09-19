@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OCEAN GUARDIAN 🐢🌊 | SDG 14 Marine Plastic Awareness Game</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐢</text></svg>">
+</head>
+<body>
+
+<div id="gameWrapper">
+    <div id="gameContainer">
+        <!-- Main HTML5 Canvas -->
+        <canvas id="gameCanvas"></canvas>
+
+        <!-- Top HUD (Visible during gameplay) -->
+        <div id="hud" class="hidden">
+            <div class="hud-top-bar">
+                <div class="hud-brand">
+                    <span>🐢</span>
+                    <span>OCEAN GUARDIAN</span>
+                </div>
+
+                <div class="hud-stats-group">
+                    <!-- Health Hearts -->
+                    <div class="hud-item">
+                        <span id="hudHearts" class="hud-hearts">❤️❤️❤️</span>
+                    </div>
+
+                    <!-- Live Score -->
+                    <div class="hud-item hud-score-box">
+                        <span class="hud-label">SCORE:</span>
+                        <span id="hudScore" class="hud-value">000</span>
+                    </div>
+
+                    <!-- Level Badge -->
+                    <div class="hud-item">
+                        <span id="hudLevel" class="hud-level-pill">L1: CLEAN WATERS</span>
+                    </div>
+
+                    <!-- Countdown Timer -->
+                    <div class="hud-item hud-timer-box">
+                        <span class="hud-label">⏱️</span>
+                        <span id="hudTimer" class="hud-value">01:00</span>
+                    </div>
+
+                    <!-- High Score -->
+                    <div class="hud-item hud-highscore-box">
+                        <span class="hud-label">HI:</span>
+                        <span id="hudHighScore" class="hud-value">000</span>
+                    </div>
+
+                    <!-- Action buttons -->
+                    <div class="hud-actions">
+                        <button id="btnAudioToggle" class="hud-icon-btn" title="Mute/Unmute Audio">🔊</button>
+                        <button id="btnPause" class="hud-icon-btn" title="Pause Game (ESC / P)">⏸️</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Awareness ticker line -->
+            <div class="hud-awareness-bar">
+                <span>💡</span>
+                <span id="hudAwareness">Use arrow keys to swim!</span>
+            </div>
+        </div>
+
+        <!-- Touch / On-Screen D-Pad for Touchscreens -->
+        <div id="touchControls">
+            <button id="btnUp" class="touch-btn" aria-label="Up">⬆️</button>
+            <button id="btnLeft" class="touch-btn" aria-label="Left">⬅️</button>
+            <button id="btnDown" class="touch-btn" aria-label="Down">⬇️</button>
+            <button id="btnRight" class="touch-btn" aria-label="Right">➡️</button>
+        </div>
+
+        <!-- 1. START SCREEN OVERLAY -->
+        <div id="startScreen" class="overlay">
+            <div class="start-card">
+                <span class="sdg-badge">🌐 SDG 14: LIFE BELOW WATER</span>
+                <h1 class="game-title">OCEAN GUARDIAN 🐢🌊</h1>
+                <p class="game-tagline">“Save the Ocean, One Turtle at a Time.”</p>
+
+                <div class="start-rules-pill">
+                    <div class="rule-item"><span>🐟</span> Collect healthy food (+10)</div>
+                    <div class="rule-item"><span>🧴</span> Avoid plastic (-1 ❤️)</div>
+                    <div class="rule-item"><span>☣️</span> Evade toxic waste (-2 ❤️)</div>
+                    <div class="rule-item"><span>⏱️</span> Survive 5 levels</div>
+                </div>
+
+                <div class="btn-grid">
+                    <button id="btnStartGame" class="btn-primary-large">
+                        <span>▶</span> START GAME
+                    </button>
+                    <button id="btnHowToPlay" class="btn-glass">
+                        <span>ℹ️</span> HOW TO PLAY
+                    </button>
+                    <button id="btnSdg14" class="btn-glass">
+                        <span>🌊</span> SDG 14 INFO
+                    </button>
+                    <button id="btnHighScore" class="btn-glass">
+                        <span>🏆</span> HIGH SCORES
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. LEVEL TRANSITION & 3-2-1-GO COUNTDOWN OVERLAY -->
+        <div id="levelCountdownOverlay" class="overlay hidden">
+            <div class="countdown-card">
+                <h2 id="countdownLevelTitle" class="countdown-level-title">LEVEL 1: CLEAN WATERS</h2>
+                <p id="countdownDifficulty" class="countdown-difficulty">Difficulty: EASY | Duration: 60 Seconds</p>
+                <p id="countdownAwareness" class="countdown-awareness">“Use arrow keys to swim!”</p>
+                <div id="countdownNumber" class="countdown-num pulse">3</div>
+            </div>
+        </div>
+
+        <!-- 3. EARLY LEVEL COMPLETE BANNER -->
+        <div id="levelCompleteBanner" class="level-complete-banner hidden">
+            LEVEL COMPLETE! 🌊
+        </div>
+
+        <!-- 4. GAME OVER SCREEN -->
+        <div id="gameOverOverlay" class="overlay hidden">
+            <div class="start-card">
+                <h2 style="font-family: 'Outfit', sans-serif; font-size: 2.4rem; color: #ff4d6d;">GAME OVER 💔</h2>
+                <p style="color: #94a3b8; font-size: 0.95rem;">Your turtle succumbed to oceanic pollution.</p>
+
+                <div class="result-stats-card">
+                    <div class="stat-row">
+                        <span>Final Score:</span>
+                        <span id="gameOverFinalScore" class="stat-val" style="color: #ffd166;">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Level Reached:</span>
+                        <span id="gameOverLevel" class="stat-val">1</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>High Score:</span>
+                        <span id="gameOverHighScore" class="stat-val" style="color: #00d2ff;">0</span>
+                    </div>
+                </div>
+
+                <div style="background: rgba(255, 77, 109, 0.15); border: 1px solid rgba(255, 77, 109, 0.35); padding: 12px 18px; border-radius: 12px; font-size: 0.9rem; color: #fecdd3; line-height: 1.4;">
+                    <strong style="display: block; margin-bottom: 4px;">🌊 Marine Awareness:</strong>
+                    <span id="gameOverFact">Marine animals can be harmed by plastic pollution. Small actions can help protect our oceans.</span>
+                </div>
+
+                <div class="btn-grid" style="margin-top: 6px;">
+                    <button id="btnRestartGame" class="btn-primary-large">
+                        <span>🔄</span> RESTART GAME
+                    </button>
+                    <button id="btnMainMenu" class="btn-glass" style="grid-column: span 2;">
+                        <span>🏠</span> MAIN MENU
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. FINAL COMPLETION SCREEN (OCEAN GUARDIAN VICTORY) -->
+        <div id="victoryOverlay" class="overlay hidden">
+            <div class="start-card" style="border-color: #ffd166; box-shadow: 0 0 60px rgba(255, 209, 102, 0.4);">
+                <span style="font-size: 3rem;">👑</span>
+                <h2 style="font-family: 'Outfit', sans-serif; font-size: 2.3rem; background: linear-gradient(135deg, #ffd166, #10b981); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                    CONGRATULATIONS! 🐢🌊
+                </h2>
+                <p style="font-size: 1.25rem; font-weight: 800; color: #67e8f9;">
+                    “You became an Ocean Guardian!”
+                </p>
+
+                <div class="result-stats-card">
+                    <div class="stat-row">
+                        <span>Final Score:</span>
+                        <span id="victoryFinalScore" class="stat-val" style="color: #ffd166; font-size: 1.3rem;">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>High Score:</span>
+                        <span id="victoryHighScore" class="stat-val" style="color: #00d2ff;">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Levels Completed:</span>
+                        <span class="stat-val" style="color: #10b981;">5 / 5</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Time Survived:</span>
+                        <span id="victoryTimeSurvived" class="stat-val">05:00</span>
+                    </div>
+                </div>
+
+                <p style="font-size: 0.95rem; color: #cbd5e1; font-style: italic; line-height: 1.4; padding: 4px 10px;">
+                    “Every piece of plastic we prevent from reaching the ocean can make a difference.”<br>
+                    <strong style="color: #00d2ff; text-transform: uppercase;">🌊 PROTECT OUR OCEANS 🌊</strong>
+                </p>
+
+                <div class="btn-grid" style="margin-top: 6px;">
+                    <button id="btnPlayAgain" class="btn-primary-large">
+                        <span>▶</span> PLAY AGAIN
+                    </button>
+                    <button id="btnVictoryMenu" class="btn-glass" style="grid-column: span 2;">
+                        <span>🏠</span> MAIN MENU
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. PAUSE OVERLAY -->
+        <div id="pauseOverlay" class="overlay hidden">
+            <div class="start-card" style="max-width: 400px;">
+                <h2 style="font-family: 'Outfit', sans-serif; font-size: 2rem; color: var(--primary);">GAME PAUSED ⏸️</h2>
+                <div style="display: flex; flex-direction: column; gap: 10px; width: 100%; margin-top: 10px;">
+                    <button id="btnResumeGame" class="btn-primary-large" style="grid-column: span 1;">
+                        <span>▶</span> RESUME
+                    </button>
+                    <button id="btnPauseRestart" class="btn-glass">
+                        <span>🔄</span> RESTART
+                    </button>
+                    <button id="btnPauseMenu" class="btn-glass">
+                        <span>🏠</span> MAIN MENU
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: HOW TO PLAY -->
+        <div id="howToPlayModal" class="modal-overlay hidden">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <h2>🎮 HOW TO PLAY</h2>
+                    <button class="close-x modal-close-btn" data-close="howToPlayModal">&times;</button>
+                </div>
+
+                <div class="instructions-grid">
+                    <div class="info-card">
+                        <h4>⌨️ Controls</h4>
+                        <ul>
+                            <li><strong>⬆️ / W:</strong> Swim Up</li>
+                            <li><strong>⬇️ / S:</strong> Swim Down</li>
+                            <li><strong>⬅️ / A:</strong> Swim Left</li>
+                            <li><strong>➡️ / D:</strong> Swim Right</li>
+                            <li><strong>ESC / P:</strong> Pause Game</li>
+                            <li><em>On-screen D-Pad also available!</em></li>
+                        </ul>
+                    </div>
+
+                    <div class="info-card">
+                        <h4>🐟 Healthy Food (+10 pts)</h4>
+                        <ul>
+                            <li><strong>🎐 Jellyfish:</strong> Sea turtle favorite!</li>
+                            <li><strong>🐟 Coral Fish:</strong> Nutritious treat</li>
+                            <li><strong>🌿 Kelp Pod:</strong> Pure ocean energy</li>
+                            <li>Collect food to reach level threshold early!</li>
+                        </ul>
+                    </div>
+
+                    <div class="info-card">
+                        <h4>🧴 Plastic Hazards (-1 ❤️)</h4>
+                        <ul>
+                            <li><strong>Single-use Bottles:</strong> Drifting trash</li>
+                            <li><strong>Shopping Bags:</strong> Choking hazard</li>
+                            <li><strong>Snack Wrappers & Cans:</strong> Debris</li>
+                            <li><strong>6-Pack Rings:</strong> Entanglement</li>
+                            <li>Causes screen shake & damage blink.</li>
+                        </ul>
+                    </div>
+
+                    <div class="info-card">
+                        <h4>☣️ Toxic Waste (-2 ❤️❤️)</h4>
+                        <ul>
+                            <li><strong>Industrial Barrels:</strong> Appear in L4 & L5</li>
+                            <li>Glows with radioactive hazard aura</li>
+                            <li>Drains <strong>2 full hearts</strong> on contact!</li>
+                            <li>Dodge with quick directional bursts!</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="info-card" style="background: rgba(0, 210, 255, 0.08); border-color: rgba(0, 210, 255, 0.25);">
+                    <h4>⏱️ Level Progression & Duration</h4>
+                    <p style="font-size: 0.88rem; color: #cbd5e1; line-height: 1.4;">
+                        Each level lasts <strong>60 seconds</strong>. Advance by either hitting the level score threshold early or surviving all 60 seconds. Accumulate your score across all 5 levels to achieve the title of <strong>Ocean Guardian</strong>!
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: SDG 14 INFORMATION -->
+        <div id="sdg14Modal" class="modal-overlay hidden">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <h2>🌊 SDG 14: LIFE BELOW WATER</h2>
+                    <button class="close-x modal-close-btn" data-close="sdg14Modal">&times;</button>
+                </div>
+
+                <p style="font-size: 0.95rem; color: #93c5fd; font-style: italic;">
+                    “SDG 14 aims to conserve and sustainably use the oceans, seas and marine resources for sustainable development.”
+                </p>
+
+                <div class="sdg-grid">
+                    <div class="sdg-box">
+                        <h4>⚠️ The Problem</h4>
+                        <p>Over 14 million tons of plastic enter our oceans annually. Sea turtles frequently mistake plastic bags for jellyfish, causing fatal blockages and toxicity.</p>
+                    </div>
+
+                    <div class="sdg-box">
+                        <h4>💡 The Solution</h4>
+                        <p>An interactive educational game demonstrating the visceral effects of plastic pollution, teaching players to recognize hazards and rethink plastic consumption.</p>
+                    </div>
+
+                    <div class="sdg-box">
+                        <h4>🌱 The Impact</h4>
+                        <p>Inspires youth and communities toward active conservation: beach cleanups, circular economy practices, single-use plastic bans, and SDG advocacy.</p>
+                    </div>
+                </div>
+
+                <div class="info-card" style="margin-top: 6px;">
+                    <h4 style="color: var(--gold);">📊 Critical Marine Pollution Facts</h4>
+                    <ul style="gap: 8px;">
+                        <li>• Plastics make up <strong>80% of all marine debris</strong> found from surface waters to deep-sea sediments.</li>
+                        <li>• More than <strong>100,000 marine animals</strong> die every year from entanglement and ingestion of ocean plastics.</li>
+                        <li>• A single discarded plastic bottle takes upwards of <strong>450 years</strong> to break down into microplastics.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: HIGH SCORES -->
+        <div id="highScoreModal" class="modal-overlay hidden">
+            <div class="modal-card" style="max-width: 500px;">
+                <div class="modal-header">
+                    <h2>🏆 HIGH SCORES</h2>
+                    <button class="close-x modal-close-btn" data-close="highScoreModal">&times;</button>
+                </div>
+
+                <div id="leaderboardList" class="leaderboard-list">
+                    <!-- Populated dynamically via api.js -->
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="js/audio.js"></script>
+<script src="js/sprites.js"></script>
+<script src="js/particles.js"></script>
+<script src="js/levels.js"></script>
+<script src="js/api.js"></script>
+<script src="js/game.js"></script>
+
+</body>
+</html>
